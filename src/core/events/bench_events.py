@@ -1,0 +1,56 @@
+"""Bench domain events (ADR-003)."""
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+
+TOPIC_RUN_STARTED = "bench.run.started"
+TOPIC_RUN_COMPLETED = "bench.run.completed"
+TOPIC_SCORE_PUBLISHED = "bench.score.published"
+
+
+@dataclass(frozen=True)
+class DomainEvent:
+    topic: str
+    key: str
+    payload: dict
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+def run_started(run) -> DomainEvent:
+    return DomainEvent(
+        topic=TOPIC_RUN_STARTED,
+        key=run.id,
+        payload={"run_id": run.id, "target": run.target,
+                 "started_at": run.started_at.isoformat()},
+    )
+
+
+def run_completed(run, passed: int, failed: int) -> DomainEvent:
+    return DomainEvent(
+        topic=TOPIC_RUN_COMPLETED,
+        key=run.id,
+        payload={"run_id": run.id, "status": run.status.value,
+                 "passed_count": passed, "failed_count": failed,
+                 "completed_at": run.completed_at.isoformat()},
+    )
+
+
+def score_published(score) -> DomainEvent:
+    return DomainEvent(
+        topic=TOPIC_SCORE_PUBLISHED,
+        key=score.run_id,
+        payload={"score_id": score.id, "run_id": score.run_id,
+                 "target": score.target, "dimension": score.dimension,
+                 "value": score.value},
+    )
+
+
+class OutboxPublisher:
+    def __init__(self):
+        self._events: list = []
+
+    def publish(self, event: DomainEvent) -> None:
+        self._events.append(event)
+
+    def drain(self) -> list:
+        events, self._events = self._events, []
+        return events

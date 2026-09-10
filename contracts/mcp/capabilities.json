@@ -1,0 +1,61 @@
+{
+  "module": "arca-bench",
+  "version": "0.1.0",
+  "governance": "Capabilities are versioned and published through OOC gates (ADR-004).",
+  "capabilities": [
+    {
+      "name": "test-register",
+      "description": "Register a new test case in the catalog.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "test-run",
+      "description": "Execute a test suite against a target.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "score-compute",
+      "description": "Compute an Arca score from test results.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": true
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+[
+  {
+    "type": "record",
+    "name": "RunStarted",
+    "namespace": "arca.bench",
+    "doc": "Emitted when a test run starts.",
+    "fields": [
+      {
+        "name": "run_id",
+        "type": "str"
+      },
+      {
+        "name": "target",
+        "type": "str"
+      },
+      {
+        "name": "started_at",
+        "type": "str"
+      }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "RunCompleted",
+    "namespace": "arca.bench",
+    "doc": "Emitted when a test run completes.",
+    "fields": [
+      {
+        "name": "run_id",
+        "type": "str"
+      },
+      {
+        "name": "passed_count",
+        "type": "int"
+      },
+      {
+        "name": "failed_count",
+        "type": "int"
+      },
+      {
+        "name": "completed_at",
+        "type": "str"
+      }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "ScorePublished",
+    "namespace": "arca.bench",
+    "doc": "Emitted when a score is computed.",
+    "fields": [
+      {
+        "name": "score_id",
+        "type": "str"
+      },
+      {
+        "name": "target",
+        "type": "str"
+      },
+      {
+        "name": "dimension",
+        "type": "str"
+      },
+      {
+        "name": "value",
+        "type": "double"
+      }
+    ]
+  }
+]

@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: Arca Bench - Test & Evaluation Laboratory REST API
+  version: 0.1.0
+  description: Synchronous contract of arca-bench (see ADR-002).
+servers:
+  - url: /api/v1
+paths:
+  /tests:
+    get:
+      summary: List registered tests
+      operationId: bench_get_921157
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+  /tests:
+    post:
+      summary: Register a test
+      operationId: bench_post_921157
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+  /runs:
+    post:
+      summary: Start a test run
+      operationId: bench_post_571641
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+  /runs/{id}:
+    get:
+      summary: Read a test run
+      operationId: bench_get_448515
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+  /runs/{id}/results:
+    post:
+      summary: Submit a test result
+      operationId: bench_post_669076
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+  /scores:
+    get:
+      summary: List computed scores
+      operationId: bench_get_916933
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {'$ref': '#/components/schemas/TestRun'}
+components:
+  schemas:
+    TestRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
