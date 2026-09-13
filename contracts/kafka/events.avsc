@@ -5,18 +5,9 @@
     "namespace": "arca.bench",
     "doc": "Emitted when a test run starts.",
     "fields": [
-      {
-        "name": "run_id",
-        "type": "str"
-      },
-      {
-        "name": "target",
-        "type": "str"
-      },
-      {
-        "name": "started_at",
-        "type": "str"
-      }
+      { "name": "run_id", "type": "string" },
+      { "name": "target", "type": "string" },
+      { "name": "started_at", "type": "string" }
     ]
   },
   {
@@ -25,22 +16,11 @@
     "namespace": "arca.bench",
     "doc": "Emitted when a test run completes.",
     "fields": [
-      {
-        "name": "run_id",
-        "type": "str"
-      },
-      {
-        "name": "passed_count",
-        "type": "int"
-      },
-      {
-        "name": "failed_count",
-        "type": "int"
-      },
-      {
-        "name": "completed_at",
-        "type": "str"
-      }
+      { "name": "run_id", "type": "string" },
+      { "name": "status", "type": "string" },
+      { "name": "passed_count", "type": "int" },
+      { "name": "failed_count", "type": "int" },
+      { "name": "completed_at", "type": "string" }
     ]
   },
   {
@@ -49,22 +29,47 @@
     "namespace": "arca.bench",
     "doc": "Emitted when a score is computed.",
     "fields": [
-      {
-        "name": "score_id",
-        "type": "str"
-      },
-      {
-        "name": "target",
-        "type": "str"
-      },
-      {
-        "name": "dimension",
-        "type": "str"
-      },
-      {
-        "name": "value",
-        "type": "double"
-      }
+      { "name": "score_id", "type": "string" },
+      { "name": "run_id", "type": "string" },
+      { "name": "target", "type": "string" },
+      { "name": "dimension", "type": "string" },
+      { "name": "value", "type": "double" }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "EvidenceCollected",
+    "namespace": "arca.bench",
+    "doc": "Emitted when evidence is collected.",
+    "fields": [
+      { "name": "evidence_id", "type": "string" },
+      { "name": "run_id", "type": "string" },
+      { "name": "artifact_url", "type": "string" },
+      { "name": "sha256", "type": "string" },
+      { "name": "collected_at", "type": "string" }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "ReportGenerated",
+    "namespace": "arca.bench",
+    "doc": "Emitted when a report is generated.",
+    "fields": [
+      { "name": "report_id", "type": "string" },
+      { "name": "run_id", "type": "string" },
+      { "name": "format", "type": "string" },
+      { "name": "created_at", "type": "string" }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "AssetPublished",
+    "namespace": "arca.bench",
+    "doc": "Consumed from the platform to trigger a default suite.",
+    "fields": [
+      { "name": "asset_id", "type": "string" },
+      { "name": "suite", "type": { "type": "array", "items": "string" } },
+      { "name": "published_at", "type": "string" }
     ]
   }
 ]

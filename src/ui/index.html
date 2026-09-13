@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arca Bench Dashboard</title>
+  <link rel="stylesheet" href="/ui/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Arca Bench Dashboard</h1>
+    <p>Quality, performance, resilience & conformance laboratory</p>
+  </header>
+  <main>
+    <section id="controls">
+      <h2>Register test</h2>
+      <form id="register-form">
+        <input name="name" placeholder="Test name" required />
+        <input name="category" placeholder="Category" required />
+        <button type="submit">Register</button>
+      </form>
+      <h2>Start run</h2>
+      <form id="run-form">
+        <input name="target" placeholder="Target asset" required />
+        <input name="suite" placeholder="Comma-separated test IDs" required />
+        <button type="submit">Start run</button>
+      </form>
+    </section>
+    <section id="tests">
+      <h2>Tests</h2>
+      <ul id="tests-list"></ul>
+    </section>
+    <section id="runs">
+      <h2>Runs</h2>
+      <ul id="runs-list"></ul>
+    </section>
+    <section id="scorecard">
+      <h2>Scorecard</h2>
+      <pre id="scorecard-view">Select a run to view scorecard.</pre>
+    </section>
+    <section id="report">
+      <h2>Report</h2>
+      <pre id="report-view">Select a run to view report.</pre>
+    </section>
+  </main>
+  <script src="/ui/bench.js"></script>
+</body>
+</html>

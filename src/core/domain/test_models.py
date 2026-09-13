@@ -1,10 +1,14 @@
-"""Test domain model for arca-bench (ADR-001, ADR-005).
+"""Test domain model for arca-bench (ADR-001, ADR-005, ADR-009).
 
 Aggregates and value objects:
 - TestCase: an immutable catalog entry (name, category, version).
 - TestRun: an aggregate root that runs a suite of test-case names against a target.
 - TestResult: a value object recording the outcome of one test case in a run.
 - Score: a value object produced from a set of results.
+- Evidence: an artifact collected during a run.
+- Scorecard: a computed view over scores for a target.
+- RemediationItem: a recommended action derived from a failed test.
+- Report: a generated remediation report for a run.
 """
 import uuid
 from dataclasses import dataclass, field
@@ -48,7 +52,7 @@ class TestRun:
     completed_at: datetime | None = None
 
     def __post_init__(self):
-        if not self.target or not self.suite:
+        if not self.target or self.suite is None:
             raise ValueError("target and suite are required")
 
     def complete(self) -> None:
@@ -94,3 +98,57 @@ class Score:
         return {"id": self.id, "target": self.target,
                 "dimension": self.dimension, "value": self.value,
                 "run_id": self.run_id}
+
+
+@dataclass(frozen=True)
+class Evidence:
+    run_id: str
+    artifact_url: str
+    sha256: str
+    collected_at: datetime = field(default_factory=_now)
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    def to_dict(self) -> dict:
+        return {"id": self.id, "run_id": self.run_id,
+                "artifact_url": self.artifact_url, "sha256": self.sha256,
+                "collected_at": self.collected_at.isoformat()}
+
+
+@dataclass(frozen=True)
+class RemediationItem:
+    finding: str
+    severity: str
+    action: str
+    test_case_id: str
+
+    def to_dict(self) -> dict:
+        return {"finding": self.finding, "severity": self.severity,
+                "action": self.action, "test_case_id": self.test_case_id}
+
+
+@dataclass
+class Scorecard:
+    target: str
+    dimensions: dict
+    overall: float
+    run_id: str
+    generated_at: datetime = field(default_factory=_now)
+
+    def to_dict(self) -> dict:
+        return {"target": self.target, "dimensions": self.dimensions,
+                "overall": self.overall, "run_id": self.run_id,
+                "generated_at": self.generated_at.isoformat()}
+
+
+@dataclass
+class Report:
+    run_id: str
+    format: str
+    content: str
+    created_at: datetime = field(default_factory=_now)
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    def to_dict(self) -> dict:
+        return {"id": self.id, "run_id": self.run_id,
+                "format": self.format, "content": self.content,
+                "created_at": self.created_at.isoformat()}

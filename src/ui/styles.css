@@ -1,0 +1,93 @@
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f6f8fa;
+  color: #1f2328;
+}
+
+header {
+  background: #0d1117;
+  color: #fff;
+  padding: 1.5rem 2rem;
+}
+
+header h1 {
+  margin: 0 0 0.25rem;
+}
+
+header p {
+  margin: 0;
+  color: #8b949e;
+}
+
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+section {
+  background: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+input {
+  flex: 1 1 120px;
+  padding: 0.5rem;
+  border: 1px solid #d0d7de;
+  border-radius: 0.25rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #2da44e;
+  color: #fff;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2c974b;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+li:hover {
+  background: #f6f8fa;
+}
+
+pre {
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  overflow: auto;
+  max-height: 300px;
+}

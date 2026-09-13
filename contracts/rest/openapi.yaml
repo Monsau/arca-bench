@@ -2,80 +2,306 @@ openapi: 3.1.0
 info:
   title: Arca Bench - Test & Evaluation Laboratory REST API
   version: 0.1.0
-  description: Synchronous contract of arca-bench (see ADR-002).
+  description: Synchronous contract of arca-bench (see ADR-002, ADR-009).
 servers:
   - url: /api/v1
+security:
+  - bearerAuth: []
 paths:
+  /bench/health:
+    get:
+      summary: Module health
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
   /tests:
     get:
       summary: List registered tests
-      operationId: bench_get_921157
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
-  /tests:
+              schema:
+                $ref: '#/components/schemas/TestList'
     post:
       summary: Register a test
-      operationId: bench_post_921157
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+  /runs:
+    get:
+      summary: List test runs
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
-  /runs:
+              schema:
+                $ref: '#/components/schemas/RunList'
     post:
       summary: Start a test run
-      operationId: bench_post_571641
       responses:
-        '200':
-          description: OK
+        '202':
+          description: Accepted
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
+              schema:
+                $ref: '#/components/schemas/RunStarted'
   /runs/{id}:
     get:
       summary: Read a test run
-      operationId: bench_get_448515
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
+              schema:
+                $ref: '#/components/schemas/TestRun'
   /runs/{id}/results:
     post:
       summary: Submit a test result
-      operationId: bench_post_669076
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+  /runs/{id}/complete:
+    post:
+      summary: Complete a test run and compute scores
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
+              schema:
+                $ref: '#/components/schemas/RunSummary'
+  /runs/{id}/evidence:
+    post:
+      summary: Collect evidence for a run
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evidence'
+    get:
+      summary: List evidence for a run
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceList'
+  /runs/{id}/report:
+    get:
+      summary: Generate a remediation report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, html]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
   /scores:
     get:
       summary: List computed scores
-      operationId: bench_get_916933
+      parameters:
+        - name: target
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: {'$ref': '#/components/schemas/TestRun'}
+              schema:
+                $ref: '#/components/schemas/ScoreList'
+  /scorecards/{id}:
+    get:
+      summary: Get scorecard for a run
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scorecard'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    Health:
+      type: object
+      properties:
+        status: { type: string }
+        service: { type: string }
+    TestCase:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        category: { type: string }
+        version: { type: string }
+    TestList:
+      type: object
+      properties:
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCase'
     TestRun:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        status:
-          type: string
-        created_at:
-          type: string
-          format: date-time
+        run_id: { type: string, format: uuid }
+        target: { type: string }
+        suite:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        started_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time, nullable: true }
+    RunList:
+      type: object
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestRun'
+    RunStarted:
+      type: object
+      properties:
+        run_id: { type: string }
+        status: { type: string }
+        correlation_id: { type: string }
+    TestResult:
+      type: object
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        test_case_id: { type: string }
+        passed: { type: boolean }
+        details: { type: string }
+    RunSummary:
+      type: object
+      properties:
+        run_id: { type: string }
+        status: { type: string }
+        passed: { type: integer }
+        failed: { type: integer }
+        scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Score'
+        scorecard:
+          $ref: '#/components/schemas/Scorecard'
+    Score:
+      type: object
+      properties:
+        id: { type: string }
+        target: { type: string }
+        dimension: { type: string }
+        value: { type: number }
+        run_id: { type: string }
+    ScoreList:
+      type: object
+      properties:
+        scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Score'
+    Scorecard:
+      type: object
+      properties:
+        target: { type: string }
+        dimensions: { type: object }
+        overall: { type: number }
+        run_id: { type: string }
+        generated_at: { type: string, format: date-time }
+    Evidence:
+      type: object
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        artifact_url: { type: string }
+        sha256: { type: string }
+        collected_at: { type: string, format: date-time }
+    EvidenceList:
+      type: object
+      properties:
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+    Report:
+      type: object
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        format: { type: string }
+        content: { type: string }
+        created_at: { type: string, format: date-time }

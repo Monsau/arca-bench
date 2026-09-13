@@ -5,25 +5,59 @@ type TestCase {
   version: String!
 }
 
+type TestRun {
+  id: ID!
+  target: String!
+  suite: [String!]!
+  status: String!
+  startedAt: String!
+  completedAt: String
+}
+
 type TestResult {
   id: ID!
   runId: ID!
+  testCaseId: ID!
   passed: Boolean!
   details: String!
 }
 
 type Score {
+  id: ID!
+  target: String!
   dimension: String!
   value: Float!
+  runId: ID!
+}
+
+type Scorecard {
+  target: String!
+  dimensions: String!
+  overall: Float!
+  runId: ID!
+  generatedAt: String!
+}
+
+type Report {
+  id: ID!
+  runId: ID!
+  format: String!
+  content: String!
+  createdAt: String!
 }
 
 type Query {
   tests: [TestCase!]!
   runs: [TestRun!]!
+  run(id: ID!): TestRun
   scores(target: String!): [Score!]!
+  scorecard(runId: ID!): Scorecard!
+  report(runId: ID!, format: String): Report!
 }
 
 type Mutation {
-  registerTest(name: String!, category: String!): TestCase!
+  registerTest(name: String!, category: String!, version: String): TestCase!
   startRun(target: String!, suite: [String!]!): TestRun!
+  submitResult(runId: ID!, testCaseId: ID!, passed: Boolean!, details: String): TestResult!
+  completeRun(runId: ID!): ID!
 }

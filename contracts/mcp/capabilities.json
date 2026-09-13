@@ -1,60 +1,71 @@
 {
   "module": "arca-bench",
   "version": "0.1.0",
-  "governance": "Capabilities are versioned and published through OOC gates (ADR-004).",
+  "governance": "Capabilities are versioned and published through OOC gates (ADR-004, ADR-009).",
   "capabilities": [
     {
-      "name": "test-register",
-      "description": "Register a new test case in the catalog.",
+      "name": "run_test_suite",
+      "description": "Execute a test suite against a target and return the run summary.",
       "input_schema": {
         "type": "object",
-        "properties": {},
-        "additionalProperties": true
+        "properties": {
+          "target": { "type": "string" },
+          "suite": { "type": "array", "items": { "type": "string" } },
+          "collect_evidence": { "type": "boolean" }
+        },
+        "required": ["target", "suite"]
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": true
+          "run_id": { "type": "string" },
+          "status": { "type": "string" },
+          "summary": { "type": "object" },
+          "results": { "type": "array" }
+        }
       }
     },
     {
-      "name": "test-run",
-      "description": "Execute a test suite against a target.",
+      "name": "get_scorecard",
+      "description": "Return the scorecard for a completed test run.",
       "input_schema": {
         "type": "object",
-        "properties": {},
-        "additionalProperties": true
+        "properties": {
+          "run_id": { "type": "string" }
+        },
+        "required": ["run_id"]
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": true
+          "target": { "type": "string" },
+          "dimensions": { "type": "object" },
+          "overall": { "type": "number" },
+          "run_id": { "type": "string" },
+          "generated_at": { "type": "string" }
+        }
       }
     },
     {
-      "name": "score-compute",
-      "description": "Compute an Arca score from test results.",
+      "name": "generate_report",
+      "description": "Generate a JSON or HTML remediation report for a run.",
       "input_schema": {
         "type": "object",
-        "properties": {},
-        "additionalProperties": true
+        "properties": {
+          "run_id": { "type": "string" },
+          "format": { "type": "string", "enum": ["json", "html"] }
+        },
+        "required": ["run_id"]
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": true
+          "id": { "type": "string" },
+          "run_id": { "type": "string" },
+          "format": { "type": "string" },
+          "content": { "type": "string" },
+          "created_at": { "type": "string" }
+        }
       }
     }
   ]

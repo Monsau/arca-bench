@@ -1,10 +1,12 @@
-"""Bench domain events (ADR-003)."""
+"""Bench domain events (ADR-003, ADR-009)."""
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 TOPIC_RUN_STARTED = "bench.run.started"
 TOPIC_RUN_COMPLETED = "bench.run.completed"
 TOPIC_SCORE_PUBLISHED = "bench.score.published"
+TOPIC_EVIDENCE_COLLECTED = "bench.evidence.collected"
+TOPIC_REPORT_GENERATED = "bench.report.generated"
 
 
 @dataclass(frozen=True)
@@ -41,6 +43,27 @@ def score_published(score) -> DomainEvent:
         payload={"score_id": score.id, "run_id": score.run_id,
                  "target": score.target, "dimension": score.dimension,
                  "value": score.value},
+    )
+
+
+def evidence_collected(evidence) -> DomainEvent:
+    return DomainEvent(
+        topic=TOPIC_EVIDENCE_COLLECTED,
+        key=evidence.run_id,
+        payload={"evidence_id": evidence.id, "run_id": evidence.run_id,
+                 "artifact_url": evidence.artifact_url,
+                 "sha256": evidence.sha256,
+                 "collected_at": evidence.collected_at.isoformat()},
+    )
+
+
+def report_generated(report) -> DomainEvent:
+    return DomainEvent(
+        topic=TOPIC_REPORT_GENERATED,
+        key=report.run_id,
+        payload={"report_id": report.id, "run_id": report.run_id,
+                 "format": report.format,
+                 "created_at": report.created_at.isoformat()},
     )
 
 

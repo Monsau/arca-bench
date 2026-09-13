@@ -1,4 +1,4 @@
-"""SQL repository for the bench store (ADR-005).
+"""SQL repository for the bench store (ADR-005, ADR-009).
 
 PostgreSQL in production; SQLite is accepted for dev/tests.
 """
@@ -6,7 +6,15 @@ import json
 import sqlite3
 from datetime import datetime
 
-from ..core.domain.test_models import RunStatus, Score, TestCase, TestResult, TestRun
+from ..core.domain.test_models import (
+    Evidence,
+    Report,
+    RunStatus,
+    Score,
+    TestCase,
+    TestResult,
+    TestRun,
+)
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS test_cases (
@@ -36,6 +44,20 @@ CREATE TABLE IF NOT EXISTS scores (
     dimension TEXT NOT NULL,
     value REAL NOT NULL,
     run_id TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS evidence (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    artifact_url TEXT NOT NULL,
+    sha256 TEXT NOT NULL,
+    collected_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS reports (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    format TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL
 );
 """
 
@@ -83,6 +105,11 @@ class SqlBenchRepository:
             "SELECT * FROM test_runs WHERE id = ?", (run_id,)).fetchone()
         return self._to_run(row) if row else None
 
+    def list_runs(self) -> list:
+        rows = self._conn.execute(
+            "SELECT * FROM test_runs ORDER BY started_at DESC").fetchall()
+        return [self._to_run(r) for r in rows]
+
     # -- results --------------------------------------------------------------
 
     def save_result(self, result: TestResult) -> None:
@@ -115,6 +142,37 @@ class SqlBenchRepository:
             rows = self._conn.execute("SELECT * FROM scores").fetchall()
         return [self._to_score(r) for r in rows]
 
+    # -- evidence -------------------------------------------------------------
+
+    def save_evidence(self, evidence: Evidence) -> None:
+        self._conn.execute(
+            "INSERT INTO evidence (id, run_id, artifact_url, sha256, collected_at)"
+            " VALUES (?,?,?,?,?)",
+            (evidence.id, evidence.run_id, evidence.artifact_url,
+             evidence.sha256, evidence.collected_at.isoformat()))
+        self._conn.commit()
+
+    def get_evidence(self, run_id: str) -> list:
+        rows = self._conn.execute(
+            "SELECT * FROM evidence WHERE run_id = ?", (run_id,)).fetchall()
+        return [self._to_evidence(r) for r in rows]
+
+    # -- reports --------------------------------------------------------------
+
+    def save_report(self, report: Report) -> None:
+        self._conn.execute(
+            "INSERT INTO reports (id, run_id, format, content, created_at)"
+            " VALUES (?,?,?,?,?)",
+            (report.id, report.run_id, report.format, report.content,
+             report.created_at.isoformat()))
+        self._conn.commit()
+
+    def get_report(self, run_id: str) -> Report | None:
+        row = self._conn.execute(
+            "SELECT * FROM reports WHERE run_id = ? ORDER BY created_at DESC",
+            (run_id,)).fetchone()
+        return self._to_report(row) if row else None
+
     # -- internals ------------------------------------------------------------
 
     def _to_test(self, row) -> TestCase:
@@ -138,6 +196,18 @@ class SqlBenchRepository:
         return Score(id=row["id"], target=row["target"],
                      dimension=row["dimension"], value=row["value"],
                      run_id=row["run_id"])
+
+    def _to_evidence(self, row) -> Evidence:
+        return Evidence(
+            id=row["id"], run_id=row["run_id"],
+            artifact_url=row["artifact_url"], sha256=row["sha256"],
+            collected_at=_dt(row["collected_at"]))
+
+    def _to_report(self, row) -> Report:
+        return Report(
+            id=row["id"], run_id=row["run_id"],
+            format=row["format"], content=row["content"],
+            created_at=_dt(row["created_at"]))
 
 
 def connect_sqlite(path: str = ":memory:") -> sqlite3.Connection:
