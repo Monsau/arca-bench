@@ -7,6 +7,7 @@ routes every mutation through the embedded SOC for audit and telemetry.
 from ...infra.soc import EmbeddedSOC, audit_operation
 from ..events.bench_events import (
     OutboxPublisher,
+    bench_results,
     evidence_collected,
     report_generated,
     run_completed,
@@ -22,7 +23,7 @@ from .scoring import ScoringEngine
 
 class BenchService:
     def __init__(self, repository,
-                 publisher: OutboxPublisher | None = None,
+                 publisher=None,
                  soc: EmbeddedSOC | None = None):
         self._repo = repository
         self._publisher = publisher or OutboxPublisher()
@@ -91,6 +92,7 @@ class BenchService:
                 self._repo.save_score(score)
                 self._publisher.publish(score_published(score))
             scorecard = self.scoring.build_scorecard(run, scores)
+            self._publisher.publish(bench_results(run, scorecard, failed=failed))
             anomalies = (self._soc.analyzer.detect_anomaly("run_failure_rate", 0.1)
                          if self._soc else [])
             if anomalies:

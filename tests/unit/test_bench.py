@@ -136,3 +136,61 @@ def test_jwt_dev_mode():
     payload = verify_token(token)
     assert payload["sub"] == "user1"
     assert "bench_runner" in payload["roles"]
+
+
+def test_complete_run_publishes_bench_results(service):
+    svc, publisher, _ = service
+    t = svc.register_test("t1", "security")
+    run = svc.start_run("target", [t.id])
+    svc.submit_result(run.id, t.id, True, "ok")
+    svc.complete_run(run.id)
+    topics = [e.topic for e in publisher.drain()]
+    assert "bench.results" in topics
+
+
+def test_workflow_completed_handler_starts_run():
+    from src.infra.kafka import KafkaEvent, build_asset_published_handler
+
+    repo = SqlBenchRepository(connect_sqlite())
+    svc = BenchService(repo)
+    handler = build_asset_published_handler(svc, ["default-test"])
+    event = KafkaEvent(
+        topic="flow.workflow.completed",
+        key="corr-1",
+        payload={"target": "supplier-1", "suite": ["s1", "s2"]},
+    )
+    handler(event)
+    runs = svc.list_runs()
+    assert len(runs) == 1
+    assert runs[0].target == "supplier-1"
+
+
+def test_workflow_completed_handler_uses_envelope_payload():
+    from src.infra.kafka import KafkaEvent, build_asset_published_handler
+
+    repo = SqlBenchRepository(connect_sqlite())
+    svc = BenchService(repo)
+    handler = build_asset_published_handler(svc, [])
+    event = KafkaEvent(
+        topic="flow.workflow.completed",
+        key="corr-2",
+        payload={
+            "event_id": "evt-1",
+            "correlation_id": "corr-2",
+            "payload": {"target": "supplier-2", "suite": ["s3"]},
+        },
+    )
+    handler(event)
+    runs = svc.list_runs()
+    assert len(runs) == 1
+    assert runs[0].target == "supplier-2"
+
+
+def test_kafka_producer_fallback_buffer():
+    from src.infra.kafka import KafkaEvent, KafkaProducer
+
+    producer = KafkaProducer(bootstrap_servers="unreachable:9092")
+    event = KafkaEvent(topic="bench.results", key="k", payload={"score": 1.0})
+    result = producer.publish(event)
+    assert result == "buffered"
+    assert len(producer.buffered_events()) == 1

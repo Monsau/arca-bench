@@ -7,6 +7,7 @@ TOPIC_RUN_COMPLETED = "bench.run.completed"
 TOPIC_SCORE_PUBLISHED = "bench.score.published"
 TOPIC_EVIDENCE_COLLECTED = "bench.evidence.collected"
 TOPIC_REPORT_GENERATED = "bench.report.generated"
+TOPIC_BENCH_RESULTS = "bench.results"
 
 
 @dataclass(frozen=True)
@@ -67,6 +68,25 @@ def report_generated(report) -> DomainEvent:
     )
 
 
+def bench_results(run, scorecard, failed: int = 0,
+                  report_id: str | None = None) -> DomainEvent:
+    evidence = [{"source": "bench",
+                 "ref_id": report_id or run.id,
+                 "description": "bench run completed"}]
+    return DomainEvent(
+        topic=TOPIC_BENCH_RESULTS,
+        key=run.id,
+        payload={
+            "bench_id": run.id,
+            "target": run.target,
+            "dimension": "supplier-risk",
+            "passed": failed == 0,
+            "score": scorecard.overall,
+            "evidence": evidence,
+        },
+    )
+
+
 class OutboxPublisher:
     def __init__(self):
         self._events: list = []
@@ -77,3 +97,18 @@ class OutboxPublisher:
     def drain(self) -> list:
         events, self._events = self._events, []
         return events
+
+
+class KafkaDomainEventPublisher:
+    def __init__(self, producer):
+        self._producer = producer
+
+    def publish(self, event: DomainEvent) -> None:
+        from ...infra.kafka import KafkaEvent as InfraKafkaEvent
+        self._producer.publish(
+            InfraKafkaEvent(
+                topic=event.topic,
+                key=event.key,
+                payload=event.payload,
+            )
+        )
