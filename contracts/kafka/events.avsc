@@ -76,27 +76,46 @@
     "type": "record",
     "name": "BenchResults",
     "namespace": "arca.bench",
-    "doc": "Emitted when a bench run completes with aggregated results.",
+    "doc": "bench.results — benchmark results have been published.",
     "fields": [
-      { "name": "bench_id", "type": "string" },
-      { "name": "target", "type": "string" },
-      { "name": "dimension", "type": "string" },
-      { "name": "passed", "type": "boolean" },
-      { "name": "score", "type": "double" },
+      { "name": "event_id", "type": "string", "doc": "Event UUID" },
+      { "name": "correlation_id", "type": "string", "doc": "Correlation ID (Evidence)" },
+      { "name": "occurred_at", "type": "string", "doc": "ISO-8601 UTC timestamp" },
       {
-        "name": "evidence",
+        "name": "actor",
+        "type": ["null", "string"],
+        "default": null,
+        "doc": "Actor (OIDC sub) or SPIFFE workload"
+      },
+      {
+        "name": "payload",
         "type": {
-          "type": "array",
-          "items": {
-            "type": "record",
-            "name": "EvidenceRef",
-            "fields": [
-              { "name": "source", "type": "string" },
-              { "name": "ref_id", "type": "string" },
-              { "name": "description", "type": "string" }
-            ]
-          }
-        }
+          "type": "record",
+          "name": "BenchResultsPayload",
+          "fields": [
+            { "name": "bench_id", "type": "string" },
+            { "name": "target", "type": "string" },
+            { "name": "dimension", "type": "string" },
+            { "name": "passed", "type": "boolean" },
+            { "name": "score", "type": "double" },
+            {
+              "name": "evidence",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "EvidenceRef",
+                  "fields": [
+                    { "name": "source", "type": "string" },
+                    { "name": "ref_id", "type": "string" },
+                    { "name": "description", "type": "string" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "doc": "Benchmark results payload"
       }
     ]
   }

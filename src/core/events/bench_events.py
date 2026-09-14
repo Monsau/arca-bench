@@ -1,4 +1,5 @@
 """Bench domain events (ADR-003, ADR-009)."""
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -77,12 +78,18 @@ def bench_results(run, scorecard, failed: int = 0,
         topic=TOPIC_BENCH_RESULTS,
         key=run.id,
         payload={
-            "bench_id": run.id,
-            "target": run.target,
-            "dimension": "supplier-risk",
-            "passed": failed == 0,
-            "score": scorecard.overall,
-            "evidence": evidence,
+            "event_id": f"evt-{uuid.uuid4().hex[:12]}",
+            "correlation_id": run.id,
+            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "actor": None,
+            "payload": {
+                "bench_id": run.id,
+                "target": run.target,
+                "dimension": "supplier-risk",
+                "passed": failed == 0,
+                "score": scorecard.overall,
+                "evidence": evidence,
+            },
         },
     )
 
