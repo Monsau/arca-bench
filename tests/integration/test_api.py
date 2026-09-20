@@ -98,3 +98,41 @@ def test_graphql_roundtrip(client):
         "query": f'query {{ run(id: "{run_id}") {{ target status }} }}'
     })
     assert resp.json()["data"]["run"]["target"] == "gql-target"
+
+
+def test_decision_replay_rest(client):
+    rules = client.get("/api/v1/decision-replay/rules")
+    assert rules.status_code == 200
+    assert "threshold" in rules.json()["rules"]
+
+    package = {
+        "decision_id": "dec-rest-1",
+        "rule_id": "threshold",
+        "inputs": {"amount": 120, "limit": 100},
+        "sealed_outcome": True,
+        "approvals": [
+            {"voter_id": "voter-a", "role": "committee_member",
+             "approved_at": "2026-09-20T10:00:00+00:00"},
+            {"voter_id": "voter-b", "role": "committee_chair",
+             "approved_at": "2026-09-20T10:05:00+00:00"},
+        ],
+        "quorum_required": 2,
+        "required_roles": ["committee_member", "committee_chair"],
+        "sealed_by": "sealer-1",
+        "sealed_at": "2026-09-20T10:30:00+00:00",
+    }
+    ok = client.post("/api/v1/decision-replay/evaluate", json=package)
+    assert ok.status_code == 200
+    body = ok.json()
+    assert body["passed"] and body["replay_match"] and body["quorum_ok"]
+
+    # tampered sealed outcome must be caught (falsification at API level)
+    tampered = dict(package, sealed_outcome=True,
+                    inputs={"amount": 50, "limit": 100})
+    bad = client.post("/api/v1/decision-replay/evaluate", json=tampered)
+    assert bad.status_code == 200
+    assert not bad.json()["passed"]
+
+    unknown = dict(package, rule_id="not-a-bench-rule")
+    assert client.post("/api/v1/decision-replay/evaluate",
+                       json=unknown).status_code == 422
