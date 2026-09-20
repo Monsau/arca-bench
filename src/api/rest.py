@@ -11,6 +11,10 @@ def _service(request: Request):
     return request.app.state.bench_service
 
 
+def _replay(request: Request):
+    return request.app.state.decision_replay
+
+
 def _soc(request: Request):
     return request.app.state.soc
 
@@ -133,6 +137,51 @@ def get_scorecard(run_id: str, request: Request):
     except LookupError:
         raise HTTPException(status_code=404, detail="run not found")
     return scorecard.to_dict()
+
+
+# -- external decision replay (reward-loop breaker) --------------------------
+# The bench re-computes the sealed outcome from the package inputs and checks
+# the quorum from the package contents only — never from module-emitted
+# events. Rules are registered bench-side (see src/main.py lifespan).
+
+@router.get("/decision-replay/rules")
+def list_replay_rules(request: Request):
+    return {"rules": _replay(request).list_rules()}
+
+
+@router.post("/decision-replay/evaluate")
+def evaluate_decision(body: dict, request: Request,
+                      user=Depends(require_role("bench_admin", "bench_runner"))):
+    from datetime import datetime
+
+    from ..core.services.decision_replay import (
+        Approval,
+        RuleNotRegistered,
+        SealedDecisionPackage,
+    )
+    body = body or {}
+    try:
+        approvals = tuple(
+            Approval(voter_id=a["voter_id"], role=a["role"],
+                     approved_at=datetime.fromisoformat(a["approved_at"]),
+                     approved=bool(a.get("approved", True)))
+            for a in body["approvals"])
+        sealed_at = (datetime.fromisoformat(body["sealed_at"])
+                     if body.get("sealed_at") else None)
+        package = SealedDecisionPackage(
+            decision_id=body["decision_id"], rule_id=body["rule_id"],
+            inputs=body["inputs"], sealed_outcome=body["sealed_outcome"],
+            approvals=approvals, quorum_required=int(body["quorum_required"]),
+            required_roles=frozenset(body.get("required_roles", [])),
+            sealed_by=body.get("sealed_by", ""), sealed_at=sealed_at,
+            evidence_hash=body.get("evidence_hash"))
+    except (KeyError, ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=f"invalid package: {exc}")
+    try:
+        verdict = _replay(request).evaluate(package)
+    except RuleNotRegistered as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return verdict.to_dict()
 
 
 def _run_dict(run) -> dict:

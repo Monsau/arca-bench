@@ -9,6 +9,7 @@ Arca Bench is the Arca Suite module that measures the quality, performance, resi
 - **Scoring Engine**: computes dimension scores and an overall scorecard from test results.
 - **Evidence Collector**: collects and hashes evidence artifacts associated with a run.
 - **Report Generator**: produces HTML/JSON remediation reports from completed runs.
+- **External Decision Replay** (reward-loop breaker): re-computes sealed outcomes from the sealed decision package with bench-side rules and verifies the approval quorum from the package contents only — never from module-emitted events. Exposed via `POST /api/v1/decision-replay/evaluate`.
 - **Integration surfaces**: REST, GraphQL, MCP tools and Kafka events.
 
 ## Autonomy

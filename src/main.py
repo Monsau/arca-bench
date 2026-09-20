@@ -27,6 +27,16 @@ async def lifespan(app: FastAPI):
     publisher = KafkaDomainEventPublisher(kafka_producer)
     app.state.bench_service = BenchService(repository, publisher=publisher, soc=soc)
 
+    from .core.services.decision_replay import DecisionReplayBench
+    replay_bench = DecisionReplayBench()
+
+    def _threshold_rule(inputs: dict):
+        """Reference deterministic rule for replay: outcome = amount >= limit."""
+        return inputs.get("amount", 0) >= inputs.get("limit", 0)
+
+    replay_bench.register_rule("threshold", _threshold_rule)
+    app.state.decision_replay = replay_bench
+
     default_suite = os.environ.get("BENCH_DEFAULT_SUITE", "").split(",")
     default_suite = [s.strip() for s in default_suite if s.strip()]
     consumer = KafkaConsumer(
