@@ -25,7 +25,7 @@ def api_health():
 
 
 @router.get("/tests")
-def list_tests(request: Request):
+def list_tests(request: Request, user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     return {"tests": [t.to_dict() for t in _service(request).list_tests()]}
 
 
@@ -60,7 +60,7 @@ def start_run(body: dict, request: Request,
 
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str, request: Request):
+def get_run(run_id: str, request: Request, user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     run = _service(request).get_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="run not found")
@@ -111,12 +111,13 @@ def collect_evidence(run_id: str, body: dict, request: Request,
 
 
 @router.get("/runs/{run_id}/evidence")
-def list_evidence(run_id: str, request: Request):
+def list_evidence(run_id: str, request: Request, user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     return {"evidence": [e.to_dict() for e in _service(request).list_evidence(run_id)]}
 
 
 @router.get("/runs/{run_id}/report")
-def get_report(run_id: str, request: Request, format: str = "json"):
+def get_report(run_id: str, request: Request, format: str = "json",
+               user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     try:
         report = _service(request).generate_report(run_id, format)
     except LookupError:
@@ -125,13 +126,15 @@ def get_report(run_id: str, request: Request, format: str = "json"):
 
 
 @router.get("/scores")
-def list_scores(target: str | None = None, request: Request = None):
+def list_scores(target: str | None = None, request: Request = None,
+                user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     scores = _service(request).get_scores(target=target)
     return {"scores": [s.to_dict() for s in scores]}
 
 
 @router.get("/scorecards/{run_id}")
-def get_scorecard(run_id: str, request: Request):
+def get_scorecard(run_id: str, request: Request,
+                  user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     try:
         scorecard = _service(request).get_scorecard(run_id)
     except LookupError:
@@ -145,7 +148,8 @@ def get_scorecard(run_id: str, request: Request):
 # events. Rules are registered bench-side (see src/main.py lifespan).
 
 @router.get("/decision-replay/rules")
-def list_replay_rules(request: Request):
+def list_replay_rules(request: Request,
+                      user=Depends(require_role("bench_admin", "bench_runner", "bench_reader"))):
     return {"rules": _replay(request).list_rules()}
 
 
