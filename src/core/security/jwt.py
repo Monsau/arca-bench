@@ -1,9 +1,16 @@
 """OIDC/JWT security layer (ADR-009).
 
-Supports two verification modes:
-- OIDC JWKS: configure BENCH_OIDC_JWKS_URL to fetch RSA/EC keys.
-- Shared-secret HS256: configure BENCH_JWT_SECRET for dev/tests.
-- Disable: set BENCH_AUTH_DISABLED=1 for local integration tests.
+Security by design: only asymmetric RS256 tokens verified against the
+configured Keycloak realm JWKS are accepted. Configure:
+
+- BENCH_OIDC_JWKS_URL   in-cluster Keycloak JWKS (the public issuer URL does
+                        not resolve inside the cluster, so discovery is not
+                        used by default)
+- BENCH_OIDC_ISSUER     expected token issuer (optional but recommended)
+- BENCH_OIDC_AUDIENCE   expected audience (default: arca-bench)
+
+The Suite portal injects the user's SSO access token on every call. There
+is no symmetric fallback and no auth bypass.
 """
 import os
 from functools import wraps
@@ -13,14 +20,6 @@ from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 
 JWKS_CACHE: dict = {}
-
-
-def _auth_disabled() -> bool:
-    return os.environ.get("BENCH_AUTH_DISABLED", "").lower() in ("1", "true", "yes")
-
-
-def _jwt_secret() -> str | None:
-    return os.environ.get("BENCH_JWT_SECRET") or None
 
 
 def _jwks_url() -> str | None:
@@ -43,6 +42,9 @@ def _fetch_jwks(url: str) -> dict:
 
 def _get_signing_key(token: str, jwks: dict):
     unverified = jwt.get_unverified_header(token)
+    if unverified.get("alg") != "RS256":
+        raise HTTPException(status_code=401,
+                            detail=f"Unsupported algorithm {unverified.get('alg')}")
     kid = unverified.get("kid")
     for key in jwks.get("keys", []):
         if key.get("kid") == kid:
@@ -50,25 +52,27 @@ def _get_signing_key(token: str, jwks: dict):
     raise HTTPException(status_code=401, detail="Signing key not found")
 
 
+def _audience() -> str:
+    return os.environ.get("BENCH_OIDC_AUDIENCE", "arca-bench")
+
+
+def _issuer() -> str | None:
+    return os.environ.get("BENCH_OIDC_ISSUER") or None
+
+
 def verify_token(token: str) -> dict:
-    if _auth_disabled():
-        return {"sub": "anonymous", "roles": ["bench_admin"]}
-    secret = _jwt_secret()
     jwks_url = _jwks_url()
+    if not jwks_url:
+        raise HTTPException(status_code=503,
+                            detail="OIDC not configured: BENCH_OIDC_JWKS_URL is required")
     try:
-        if secret:
-            return jwt.decode(token, secret, algorithms=["HS256"],
-                              audience="arca-bench")
-        if jwks_url:
-            jwks = _fetch_jwks(jwks_url)
-            key = _get_signing_key(token, jwks)
-            return jwt.decode(token, key, algorithms=[key.get("alg", "RS256")],
-                              audience="arca-bench")
+        jwks = _fetch_jwks(jwks_url)
+        key = _get_signing_key(token, jwks)
+        return jwt.decode(token, key, algorithms=["RS256"],
+                          audience=_audience(), issuer=_issuer())
     except JWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f"Invalid token: {exc}")
-    raise HTTPException(status_code=500,
-                        detail="No JWT verifier configured")
 
 
 def _extract_token(request: Request) -> str:
@@ -80,8 +84,6 @@ def _extract_token(request: Request) -> str:
 
 
 def get_current_user(request: Request) -> dict:
-    if _auth_disabled():
-        return {"sub": "anonymous", "roles": ["bench_admin"]}
     return verify_token(_extract_token(request))
 
 
@@ -103,8 +105,3 @@ def require_permission(permission: str):
                                 detail="Insufficient permission")
         return user
     return checker
-
-
-def create_access_token(data: dict, secret: str,
-                        algorithm: str = "HS256") -> str:
-    return jwt.encode(data, secret, algorithm=algorithm)

@@ -47,9 +47,9 @@ curl http://localhost:8092/ui/
 ## Configuration
 | Variable | Description |
 |----------|-------------|
-| `BENCH_OIDC_JWKS_URL` | OIDC JWKS URL for JWT verification |
-| `BENCH_JWT_SECRET` | Shared secret for HS256 dev tokens |
-| `BENCH_AUTH_DISABLED` | Set to `1` to disable auth (tests only) |
+| `BENCH_OIDC_JWKS_URL` | Keycloak realm JWKS URL for RS256 JWT verification (required in production) |
+| `BENCH_OIDC_ISSUER` | Expected token issuer (e.g. `https://auth.staging.server01/realms/tour-operator`) |
+| `BENCH_OIDC_AUDIENCE` | Expected audience (default: `arca-bench`; use `arca-suite` for the shared realm) |
 | `BENCH_DEFAULT_SUITE` | Comma-separated test IDs triggered by `asset.published` |
 | `BENCH_KAFKA_BOOTSTRAP_SERVERS` | Kafka bootstrap servers |
 

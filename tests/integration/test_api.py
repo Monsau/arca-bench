@@ -3,17 +3,28 @@ import os
 
 import pytest
 
-os.environ.setdefault("BENCH_AUTH_DISABLED", "1")
+os.environ.setdefault("BENCH_OIDC_ISSUER", "https://idp.test/realms/test")
+os.environ.setdefault("BENCH_OIDC_AUDIENCE", "arca-bench")
+os.environ["BENCH_OIDC_JWKS_URL"] = "test-jwks"
+os.environ.pop("BENCH_AUTH_DISABLED", None)
 
 fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from src.main import app  # noqa: E402
+from tests.oidc_test_utils import generate_keypair, install_test_jwks, mint_test_token  # noqa: E402
+
+_PRIVATE_KEY, _ = generate_keypair()
+install_test_jwks(_PRIVATE_KEY)
 
 
 @pytest.fixture
 def client():
     with TestClient(app) as c:
+        # Every call carries a valid SSO access token, like the Suite portal
+        # does in production (security by design: no anonymous fallback).
+        c.headers["Authorization"] = "Bearer " + mint_test_token(
+            _PRIVATE_KEY, "test-user", ["bench_runner"])
         yield c
 
 

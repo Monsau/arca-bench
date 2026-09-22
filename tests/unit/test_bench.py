@@ -5,10 +5,18 @@ import pytest
 
 from src.core.domain.test_models import Score, TestCase, TestResult, TestRun
 from src.core.events.bench_events import OutboxPublisher
-from src.core.security.jwt import create_access_token, verify_token
+from src.core.security.jwt import verify_token
 from src.core.services.bench_service import BenchService
 from src.infra.soc import EmbeddedSOC
 from src.infra.store import SqlBenchRepository, connect_sqlite
+
+from tests.oidc_test_utils import (
+    TEST_AUDIENCE,
+    TEST_ISSUER,
+    generate_keypair,
+    install_test_jwks,
+    mint_test_token,
+)
 
 
 @pytest.fixture
@@ -127,15 +135,39 @@ def test_soc_audit_collected(service):
     assert any(e["type"] == "run_completed" for e in events)
 
 
-def test_jwt_dev_mode():
-    os.environ["BENCH_JWT_SECRET"] = "test-secret"
-    if "BENCH_AUTH_DISABLED" in os.environ:
-        del os.environ["BENCH_AUTH_DISABLED"]
-    token = create_access_token({"sub": "user1", "roles": ["bench_runner"]},
-                                "test-secret")
+def test_jwt_rs256_against_test_jwks():
+    """verify_token checks RS256 signatures against the realm JWKS — the same
+    strict path as production, exercised with a generated test keypair."""
+    os.environ["BENCH_OIDC_JWKS_URL"] = "test-jwks"
+    os.environ["BENCH_OIDC_ISSUER"] = TEST_ISSUER
+    os.environ["BENCH_OIDC_AUDIENCE"] = TEST_AUDIENCE
+    private_key, _ = generate_keypair()
+    install_test_jwks(private_key)
+    token = mint_test_token(private_key, "user1", ["bench_runner"])
     payload = verify_token(token)
     assert payload["sub"] == "user1"
     assert "bench_runner" in payload["roles"]
+
+
+def test_jwt_rejects_hs256_and_bad_signatures():
+    """Security by design: symmetric HS256 tokens and wrong keys are refused."""
+    from jose import jwt as jose_jwt
+
+    os.environ["BENCH_OIDC_JWKS_URL"] = "test-jwks"
+    os.environ["BENCH_OIDC_ISSUER"] = TEST_ISSUER
+    os.environ["BENCH_OIDC_AUDIENCE"] = TEST_AUDIENCE
+    private_key, _ = generate_keypair()
+    install_test_jwks(private_key)
+
+    hs_token = jose_jwt.encode({"sub": "user1", "roles": ["bench_runner"]},
+                               "test-secret", algorithm="HS256")
+    with pytest.raises(Exception):
+        verify_token(hs_token)
+
+    other_key, _ = generate_keypair()
+    foreign = mint_test_token(other_key, "user1", ["bench_runner"])
+    with pytest.raises(Exception):
+        verify_token(foreign)
 
 
 def test_complete_run_publishes_bench_results(service):
