@@ -1,5 +1,7 @@
 (async function () {
-  const API = '/api/v1';
+  // Portal-aware API base: /m/<key>/api/v1 when mounted under the Suite portal.
+  const _pm = window.location.pathname.match(/^\/m\/([^/]+)\//);
+  const API = _pm ? `/m/${_pm[1]}/api/v1` : '/api/v1';
 
   async function getJSON(path) {
     const r = await fetch(path);
