@@ -20,7 +20,14 @@ from .infra.store import SqlBenchRepository, connect_sqlite
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    repository = SqlBenchRepository(connect_sqlite())
+    # Backend selection: DATABASE_URL (injected from bench-secrets) selects
+    # the shared PostgreSQL store so all replicas see the same runs; without
+    # it we fall back to in-memory SQLite for dev/tests.
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        repository = SqlBenchRepository(database_url)
+    else:
+        repository = SqlBenchRepository(connect_sqlite())
     soc = EmbeddedSOC()
     app.state.soc = soc
     app.state.bench_repository = repository

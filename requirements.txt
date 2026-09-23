@@ -10,3 +10,5 @@ strawberry-graphql>=0.235
 jinja2>=3.1
 aiokafka>=0.11
 prometheus_client>=0.20
+sqlalchemy>=2.0
+psycopg[binary]>=3.1  # PostgreSQL driver for the shared SQL store (ADR-005)
