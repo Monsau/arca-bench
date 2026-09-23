@@ -24,12 +24,12 @@ MODULE_NAME = "arca-bench"
 MODULE_VERSION = "0.1.5"
 
 REQUEST_COUNT = Counter(
-    "http_requests_total",
+    "arca_http_requests_total",
     "HTTP requests, by route template, method and status code.",
     ["route", "method", "status"],
 )
 REQUEST_LATENCY = Histogram(
-    "http_request_duration_seconds",
+    "arca_http_request_duration_seconds",
     "HTTP request latency in seconds, by route template and method.",
     ["route", "method"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
