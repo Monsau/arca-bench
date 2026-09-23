@@ -13,15 +13,14 @@
   -->
   <link rel="stylesheet" href="arcasuite-ui.css" />
   <style>
-    /* Local overrides only: clickable run list and bounded JSON views. */
+    /* Local overrides only: run table, run-duration sparkline and bounded
+       structured result views. */
     .bench-list { list-style: none; padding: 0; margin: var(--spacing-sm) 0 0; }
-    .bench-list li {
-      padding: 8px var(--spacing-sm);
-      border-bottom: 1px solid var(--border-subtle);
-      cursor: pointer;
-    }
-    .bench-list li:hover { background: var(--bg-hover); }
-    pre.message { max-height: 300px; overflow: auto; }
+    .bench-list li { padding: 8px var(--spacing-sm); border-bottom: 1px solid var(--border-subtle); }
+    #runs-table tbody tr { cursor: pointer; }
+    #run-durations svg { width: 100%; height: auto; display: block; margin-top: var(--spacing-sm); }
+    #scorecard-view .bar-chart svg, #report-view .bar-chart svg { width: 100%; height: auto; display: block; }
+    pre.raw { max-height: 300px; overflow: auto; }
   </style>
 </head>
 <body>
@@ -55,15 +54,21 @@
       </section>
       <section class="panel">
         <h2>Runs</h2>
-        <ul id="runs-list" class="bench-list"></ul>
+        <div id="run-durations"></div>
+        <table id="runs-table">
+          <thead>
+            <tr><th>Target</th><th>Status</th><th>Duration</th><th>Started</th><th>Run ID</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </section>
       <section class="panel">
         <h2>Scorecard</h2>
-        <pre id="scorecard-view" class="message">Select a run to view scorecard.</pre>
+        <div id="scorecard-view" class="message">Select a run to view scorecard.</div>
       </section>
       <section class="panel">
         <h2>Report</h2>
-        <pre id="report-view" class="message">Select a run to view report.</pre>
+        <div id="report-view" class="message">Select a run to view report.</div>
       </section>
     </div>
   </main>
