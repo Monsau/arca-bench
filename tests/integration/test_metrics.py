@@ -22,7 +22,7 @@ def test_metrics_serves_prometheus_text_format():
 
 def test_metrics_exposes_module_identity():
     response = client.get("/metrics")
-    assert 'arca_module_info{module="arca-bench",version="0.1.5"}' in response.text
+    assert 'arca_module_info{module="arca-bench",version="2.3.0"}' in response.text
 
 
 def test_metrics_not_behind_docs_metadata_gate(monkeypatch):

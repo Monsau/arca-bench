@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..config import settings
 from ..core.security.jwt import require_role
+from ..policies.abac import can_access_target, can_run_in_environment
 
 router = APIRouter(prefix="/api/v1", tags=["arca-bench"])
 
@@ -52,8 +53,16 @@ def start_run(body: dict, request: Request,
               user=Depends(require_role("bench_admin", "bench_runner"))):
     target = (body or {}).get("target")
     suite = (body or {}).get("suite")
+    environment = (body or {}).get("environment")
     if not target or not suite:
         raise HTTPException(status_code=422, detail="target and suite required")
+    # ABAC (ADR-009): the JWT may restrict which targets and environments
+    # this principal may run against; denial is a 403, not a silent no-op.
+    if not can_access_target(user, target):
+        raise HTTPException(status_code=403, detail="target not allowed for this principal")
+    if environment and not can_run_in_environment(user, environment):
+        raise HTTPException(status_code=403,
+                            detail="environment not allowed for this principal")
     run = _service(request).start_run(target, suite)
     return {"run_id": run.id, "status": run.status.value,
             "correlation_id": run.id}

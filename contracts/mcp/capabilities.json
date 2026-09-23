@@ -1,8 +1,30 @@
 {
   "module": "arca-bench",
-  "version": "0.1.0",
+  "version": "2.3.0",
   "governance": "Capabilities are versioned and published through OOC gates (ADR-004, ADR-009).",
   "capabilities": [
+    {
+      "name": "test-register",
+      "description": "Register a new test case in the bench catalog.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "version": { "type": "string" }
+        },
+        "required": ["name", "category"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
     {
       "name": "run_test_suite",
       "description": "Execute a test suite against a target and return the run summary.",

@@ -1,307 +1,550 @@
 openapi: 3.1.0
 info:
-  title: Arca Bench - Test & Evaluation Laboratory REST API
-  version: 0.1.0
-  description: Synchronous contract of arca-bench (see ADR-002, ADR-009).
-servers:
-  - url: /api/v1
-security:
-  - bearerAuth: []
+  title: Arca Bench - Test & Evaluation Laboratory
+  version: 2.3.0
+  description: Synchronous contract of arca-bench, generated from the running FastAPI
+    app (see ADR-002, ADR-009).
 paths:
-  /bench/health:
+  /api/v1/bench/health:
     get:
-      summary: Module health
-      security: []
+      tags:
+      - arca-bench
+      summary: Api Health
+      operationId: api_health_api_v1_bench_health_get
       responses:
         '200':
-          description: OK
+          description: Successful Response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/Health'
-  /tests:
+              schema: {}
+  /api/v1/tests:
     get:
-      summary: List registered tests
+      tags:
+      - arca-bench
+      summary: List Tests
+      operationId: list_tests_api_v1_tests_get
       responses:
         '200':
-          description: OK
+          description: Successful Response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/TestList'
+              schema: {}
     post:
-      summary: Register a test
+      tags:
+      - arca-bench
+      summary: Register Test
+      operationId: register_test_api_v1_tests_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
       responses:
         '201':
-          description: Created
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestCase'
-  /runs:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs:
     get:
-      summary: List test runs
+      tags:
+      - arca-bench
+      summary: List Runs
+      operationId: list_runs_api_v1_runs_get
       responses:
         '200':
-          description: OK
+          description: Successful Response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/RunList'
+              schema: {}
     post:
-      summary: Start a test run
+      tags:
+      - arca-bench
+      summary: Start Run
+      operationId: start_run_api_v1_runs_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
       responses:
         '202':
-          description: Accepted
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunStarted'
-  /runs/{id}:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}:
     get:
-      summary: Read a test run
+      tags:
+      - arca-bench
+      summary: Get Run
+      operationId: get_run_api_v1_runs__run_id__get
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestRun'
-  /runs/{id}/results:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/results:
     post:
-      summary: Submit a test result
+      tags:
+      - arca-bench
+      summary: Submit Result
+      operationId: submit_result_api_v1_runs__run_id__results_post
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              title: Body
       responses:
         '201':
-          description: Created
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestResult'
-  /runs/{id}/complete:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/complete:
     post:
-      summary: Complete a test run and compute scores
+      tags:
+      - arca-bench
+      summary: Complete Run
+      operationId: complete_run_api_v1_runs__run_id__complete_post
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunSummary'
-  /runs/{id}/evidence:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/evidence:
     post:
-      summary: Collect evidence for a run
+      tags:
+      - arca-bench
+      summary: Collect Evidence
+      operationId: collect_evidence_api_v1_runs__run_id__evidence_post
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              title: Body
       responses:
         '201':
-          description: Created
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Evidence'
+                $ref: '#/components/schemas/HTTPValidationError'
     get:
-      summary: List evidence for a run
+      tags:
+      - arca-bench
+      summary: List Evidence
+      operationId: list_evidence_api_v1_runs__run_id__evidence_get
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EvidenceList'
-  /runs/{id}/report:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/report:
     get:
-      summary: Generate a remediation report
+      tags:
+      - arca-bench
+      summary: Get Report
+      operationId: get_report_api_v1_runs__run_id__report_get
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [json, html]
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          default: json
+          title: Format
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Report'
-  /scores:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/scores:
     get:
-      summary: List computed scores
+      tags:
+      - arca-bench
+      summary: List Scores
+      operationId: list_scores_api_v1_scores_get
       parameters:
-        - name: target
-          in: query
-          schema:
-            type: string
+      - name: target
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScoreList'
-  /scorecards/{id}:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/scorecards/{run_id}:
     get:
-      summary: Get scorecard for a run
+      tags:
+      - arca-bench
+      summary: Get Scorecard
+      operationId: get_scorecard_api_v1_scorecards__run_id__get
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
       responses:
         '200':
-          description: OK
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Scorecard'
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/decision-replay/rules:
+    get:
+      tags:
+      - arca-bench
+      summary: List Replay Rules
+      operationId: list_replay_rules_api_v1_decision_replay_rules_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/decision-replay/evaluate:
+    post:
+      tags:
+      - arca-bench
+      summary: Evaluate Decision
+      operationId: evaluate_decision_api_v1_decision_replay_evaluate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mcp/capabilities:
+    get:
+      tags:
+      - mcp
+      summary: List Capabilities
+      operationId: list_capabilities_mcp_capabilities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /mcp/tools/test-register:
+    post:
+      tags:
+      - mcp
+      summary: Test Register
+      description: Register a new test case via MCP.
+      operationId: test_register_mcp_tools_test_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mcp/tools/run_test_suite:
+    post:
+      tags:
+      - mcp
+      summary: Run Test Suite
+      operationId: run_test_suite_mcp_tools_run_test_suite_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mcp/tools/get_scorecard:
+    post:
+      tags:
+      - mcp
+      summary: Get Scorecard
+      operationId: get_scorecard_mcp_tools_get_scorecard_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /mcp/tools/generate_report:
+    post:
+      tags:
+      - mcp
+      summary: Generate Report
+      operationId: generate_report_mcp_tools_generate_report_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Body
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /graphql:
+    get:
+      summary: Handle Http Get
+      operationId: handle_http_get_graphql_get
+      responses:
+        '200':
+          description: The GraphiQL integrated development environment.
+          content:
+            application/json:
+              schema: {}
+        '404':
+          description: Not found if GraphiQL or query via GET are not enabled.
+    post:
+      summary: Handle Http Post
+      operationId: handle_http_post_graphql_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /healthz:
+    get:
+      summary: Healthz
+      operationId: healthz_healthz_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /readyz:
+    get:
+      summary: Readyz
+      operationId: readyz_readyz_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   schemas:
-    Health:
-      type: object
+    HTTPValidationError:
       properties:
-        status: { type: string }
-        service: { type: string }
-    TestCase:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        name: { type: string }
-        category: { type: string }
-        version: { type: string }
-    TestList:
-      type: object
-      properties:
-        tests:
-          type: array
+        detail:
           items:
-            $ref: '#/components/schemas/TestCase'
-    TestRun:
-      type: object
-      properties:
-        run_id: { type: string, format: uuid }
-        target: { type: string }
-        suite:
+            $ref: '#/components/schemas/ValidationError'
           type: array
-          items: { type: string }
-        status: { type: string }
-        started_at: { type: string, format: date-time }
-        completed_at: { type: string, format: date-time, nullable: true }
-    RunList:
+          title: Detail
       type: object
+      title: HTTPValidationError
+    ValidationError:
       properties:
-        runs:
-          type: array
+        loc:
           items:
-            $ref: '#/components/schemas/TestRun'
-    RunStarted:
-      type: object
-      properties:
-        run_id: { type: string }
-        status: { type: string }
-        correlation_id: { type: string }
-    TestResult:
-      type: object
-      properties:
-        id: { type: string }
-        run_id: { type: string }
-        test_case_id: { type: string }
-        passed: { type: boolean }
-        details: { type: string }
-    RunSummary:
-      type: object
-      properties:
-        run_id: { type: string }
-        status: { type: string }
-        passed: { type: integer }
-        failed: { type: integer }
-        scores:
+            anyOf:
+            - type: string
+            - type: integer
           type: array
-          items:
-            $ref: '#/components/schemas/Score'
-        scorecard:
-          $ref: '#/components/schemas/Scorecard'
-    Score:
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
       type: object
-      properties:
-        id: { type: string }
-        target: { type: string }
-        dimension: { type: string }
-        value: { type: number }
-        run_id: { type: string }
-    ScoreList:
-      type: object
-      properties:
-        scores:
-          type: array
-          items:
-            $ref: '#/components/schemas/Score'
-    Scorecard:
-      type: object
-      properties:
-        target: { type: string }
-        dimensions: { type: object }
-        overall: { type: number }
-        run_id: { type: string }
-        generated_at: { type: string, format: date-time }
-    Evidence:
-      type: object
-      properties:
-        id: { type: string }
-        run_id: { type: string }
-        artifact_url: { type: string }
-        sha256: { type: string }
-        collected_at: { type: string, format: date-time }
-    EvidenceList:
-      type: object
-      properties:
-        evidence:
-          type: array
-          items:
-            $ref: '#/components/schemas/Evidence'
-    Report:
-      type: object
-      properties:
-        id: { type: string }
-        run_id: { type: string }
-        format: { type: string }
-        content: { type: string }
-        created_at: { type: string, format: date-time }
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

@@ -12,7 +12,7 @@ from .config import settings
 from .core.events.bench_events import KafkaDomainEventPublisher
 from .core.security.jwt import get_current_user
 from .core.services.bench_service import BenchService
-from .infra import metrics, otel
+from .infra import metrics, otel, opa
 from .infra.kafka import KafkaConsumer, KafkaProducer, build_asset_published_handler
 from .infra.soc import EmbeddedSOC
 from .infra.store import SqlBenchRepository, connect_sqlite
@@ -20,7 +20,10 @@ from .infra.store import SqlBenchRepository, connect_sqlite
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Backend selection: DATABASE_URL (injected from bench-secrets) selects
+    # OPA/Rego mode: execute bench.rego through an OPA runner when one
+    # exists; otherwise the Rego file is strictly informative (enforcement
+    # stays in the Python RBAC/ABAC stack). Always announced with one log line.
+    opa.log_policy_mode()    # Backend selection: DATABASE_URL (injected from bench-secrets) selects
     # the shared PostgreSQL store so all replicas see the same runs; without
     # it we fall back to in-memory SQLite for dev/tests.
     database_url = os.environ.get("DATABASE_URL")
@@ -76,7 +79,7 @@ def _docs_metadata_guard(request: Request) -> None:
 
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
+    version="2.3.0",
     lifespan=lifespan,
     docs_url=None,
     redoc_url=None,

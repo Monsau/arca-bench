@@ -1,4 +1,5 @@
 """GraphQL schema and resolvers. Types follow contracts/graphql/schema.graphql (ADR-002, ADR-009)."""
+import json
 from datetime import datetime
 from typing import List, Optional
 
@@ -91,9 +92,11 @@ class Query:
     def scorecard(self, info: Info, run_id: str) -> Scorecard:
         svc = info.context["service"]
         sc = svc.get_scorecard(run_id)
+        # dimensions is exposed as a JSON document (String in SDL) so the
+        # contract stays schema-stable without a nested dynamic type.
         return Scorecard(
             target=sc.target,
-            dimensions=str(sc.dimensions),
+            dimensions=json.dumps(sc.dimensions),
             overall=sc.overall,
             run_id=sc.run_id,
             generated_at=sc.generated_at.isoformat())

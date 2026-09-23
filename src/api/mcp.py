@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..core.security.jwt import require_role
+from ..policies.abac import can_access_target, can_run_in_environment
 
 router = APIRouter(prefix="/mcp", tags=["mcp"])
 
@@ -45,10 +46,18 @@ def run_test_suite(body: dict, request: Request,
     body = body or {}
     target = body.get("target")
     suite = body.get("suite")
+    environment = body.get("environment")
     collect_evidence = body.get("collect_evidence", False)
     if not target or suite is None:
         raise HTTPException(status_code=422,
                             detail="target and suite required")
+    # ABAC (ADR-009): same 403-on-denial rule as the REST run handler.
+    if not can_access_target(user, target):
+        raise HTTPException(status_code=403,
+                            detail="target not allowed for this principal")
+    if environment and not can_run_in_environment(user, environment):
+        raise HTTPException(status_code=403,
+                            detail="environment not allowed for this principal")
     svc = _service(request)
     run = svc.start_run(target, suite)
     results = []

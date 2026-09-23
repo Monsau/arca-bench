@@ -21,7 +21,7 @@ from starlette.responses import Response
 from starlette.routing import Match
 
 MODULE_NAME = "arca-bench"
-MODULE_VERSION = "0.1.5"
+MODULE_VERSION = "2.3.0"
 
 REQUEST_COUNT = Counter(
     "arca_http_requests_total",

@@ -32,6 +32,7 @@ type Score {
 
 type Scorecard {
   target: String!
+  "JSON document mapping dimension names to scores (kept as String for schema stability)."
   dimensions: String!
   overall: Float!
   runId: ID!
