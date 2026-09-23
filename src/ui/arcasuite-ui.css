@@ -46,6 +46,22 @@
     --transition-normal: 0.2s ease;
 }
 
+/* Light theme — same contract as the portal: the document root carries
+   data-theme="light" (portal toggle, persisted in localStorage) and the
+   module UI follows, since it lives in the same document. */
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #fafafa;
+    --bg-card: #ffffff;
+    --bg-hover: #f4f4f5;
+    --border-subtle: rgba(0,0,0,0.06);
+    --border-hover: rgba(0,0,0,0.12);
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-tertiary: #a1a1aa;
+    --accent-glow: rgba(99,102,241,0.15);
+}
+
 * { box-sizing: border-box; }
 
 html, body {
