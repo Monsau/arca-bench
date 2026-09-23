@@ -1,0 +1,171 @@
+/* Arca Suite — shared module UI skin (design system reference)
+   Tokens are identical to the portal (services/portal/src/static/portal.css)
+   so every module UI reads as one product with the ArcaQ design system.
+   Dark theme is the default. Modules copy this file into their static assets
+   and MUST NOT redefine the tokens — overrides belong in a local layer only.
+
+   API base contract: inside the portal the module UI is composed into the
+   /module/<key> document, so window.location is NOT the module prefix.
+   Resolve API paths from window.__ARCA_MODULE_BASE__ (injected by the
+   portal) with a /m/<key>/ location match as the standalone-dev fallback:
+
+     const base = window.__ARCA_MODULE_BASE__
+       || ((m = location.pathname.match(/^\/m\/([^/]+)\//)) ? '/m/' + m[1] + '/' : '/');
+     const API = base + 'api/v1'; */
+
+:root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111113;
+    --bg-card: #18181b;
+    --bg-hover: #27272a;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-tertiary: #71717a;
+    --accent-primary: #6366f1;
+    --accent-hover: #818cf8;
+    --accent-glow: rgba(99,102,241,0.25);
+    --success: #22c55e;
+    --warning: #eab308;
+    --error: #ef4444;
+    --info: #3b82f6;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.2s ease;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14px;
+}
+
+/* ---- Module header (module identity bar, not a second nav) ------------ */
+.mod-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: 14px var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.mod-header h1 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.01em; }
+
+.mod-main { max-width: 1200px; margin: 0 auto; padding: var(--spacing-lg); }
+.mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+@media (max-width: 900px) { .mod-grid { grid-template-columns: 1fr; } }
+
+/* ---- Panels ------------------------------------------------------------ */
+.panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+.panel h2 {
+    margin: 0 0 var(--spacing-sm);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ---- Forms ------------------------------------------------------------- */
+label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin: var(--spacing-sm) 0 var(--spacing-xs); }
+input, textarea, select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: border-color var(--transition-fast);
+}
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
+
+/* ---- Buttons ----------------------------------------------------------- */
+button {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: var(--spacing-sm);
+    transition: background var(--transition-fast);
+}
+button:hover { background: var(--accent-hover); }
+button.secondary { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-hover); }
+button.secondary:hover { border-color: var(--accent-primary); }
+button.danger { background: var(--error); }
+button.danger:hover { background: #f87171; }
+
+.row { display: flex; gap: var(--spacing-sm); align-items: end; flex-wrap: wrap; }
+.row > * { flex: 1 1 auto; }
+
+/* ---- Tables ------------------------------------------------------------ */
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { text-align: left; padding: 8px var(--spacing-sm); border-bottom: 1px solid var(--border-subtle); }
+th { color: var(--text-secondary); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+tr:hover td { background: var(--bg-hover); }
+
+/* ---- Tags / states ------------------------------------------------------ */
+.tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-hover);
+}
+.tag.sso { background: rgba(99,102,241,0.15); color: var(--accent-hover); border-color: transparent; }
+.tag.ok, .tag.state-validated, .tag.state-published { background: rgba(34,197,94,0.12); color: var(--success); border-color: transparent; }
+.tag.state-submitted { background: rgba(59,130,246,0.12); color: var(--info); border-color: transparent; }
+.tag.state-deprecated, .tag.error { background: rgba(239,68,68,0.12); color: var(--error); border-color: transparent; }
+.tag.warn { background: rgba(234,179,8,0.12); color: var(--warning); border-color: transparent; }
+
+/* ---- Feedback messages --------------------------------------------------- */
+.message {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    margin-top: var(--spacing-sm);
+    font-size: 0.83rem;
+    white-space: pre-wrap;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+.message.ok { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: var(--success); }
+.message.error { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: var(--error); }
+
+.muted { color: var(--text-tertiary); font-size: 0.83rem; }
+a { color: var(--accent-hover); }

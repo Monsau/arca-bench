@@ -4,44 +4,68 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Arca Bench Dashboard</title>
-  <link rel="stylesheet" href="styles.css" />
+  <!--
+    Shared Arca Suite skin (arcasuite-ui.css, same tokens as the portal) — one
+    product look, dark theme by default. The Suite portal composes this UI into
+    its own document (transclusion, no iframes): it injects
+    window.__ARCA_MODULE_BASE__ and sets a base href, so all relative links
+    resolve through the /m/<key>/ proxy prefix.
+  -->
+  <link rel="stylesheet" href="arcasuite-ui.css" />
+  <style>
+    /* Local overrides only: clickable run list and bounded JSON views. */
+    .bench-list { list-style: none; padding: 0; margin: var(--spacing-sm) 0 0; }
+    .bench-list li {
+      padding: 8px var(--spacing-sm);
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+    }
+    .bench-list li:hover { background: var(--bg-hover); }
+    pre.message { max-height: 300px; overflow: auto; }
+  </style>
 </head>
 <body>
-  <header>
+  <header class="mod-header">
     <h1>Arca Bench Dashboard</h1>
-    <p>Quality, performance, resilience & conformance laboratory</p>
+    <span class="tag">Quality · Performance · Resilience</span>
   </header>
-  <main>
-    <section id="controls">
-      <h2>Register test</h2>
-      <form id="register-form">
-        <input name="name" placeholder="Test name" required />
-        <input name="category" placeholder="Category" required />
-        <button type="submit">Register</button>
-      </form>
-      <h2>Start run</h2>
-      <form id="run-form">
-        <input name="target" placeholder="Target asset" required />
-        <input name="suite" placeholder="Comma-separated test IDs" required />
-        <button type="submit">Start run</button>
-      </form>
-    </section>
-    <section id="tests">
-      <h2>Tests</h2>
-      <ul id="tests-list"></ul>
-    </section>
-    <section id="runs">
-      <h2>Runs</h2>
-      <ul id="runs-list"></ul>
-    </section>
-    <section id="scorecard">
-      <h2>Scorecard</h2>
-      <pre id="scorecard-view">Select a run to view scorecard.</pre>
-    </section>
-    <section id="report">
-      <h2>Report</h2>
-      <pre id="report-view">Select a run to view report.</pre>
-    </section>
+  <main class="mod-main">
+    <div class="mod-grid">
+      <section class="panel">
+        <h2>Register test</h2>
+        <form id="register-form">
+          <label for="reg-name">Test name</label>
+          <input id="reg-name" name="name" placeholder="Test name" required />
+          <label for="reg-category">Category</label>
+          <input id="reg-category" name="category" placeholder="Category" required />
+          <button type="submit">Register</button>
+        </form>
+        <h2>Start run</h2>
+        <form id="run-form">
+          <label for="run-target">Target asset</label>
+          <input id="run-target" name="target" placeholder="Target asset" required />
+          <label for="run-suite">Test IDs</label>
+          <input id="run-suite" name="suite" placeholder="Comma-separated test IDs" required />
+          <button type="submit">Start run</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>Tests</h2>
+        <ul id="tests-list" class="bench-list"></ul>
+      </section>
+      <section class="panel">
+        <h2>Runs</h2>
+        <ul id="runs-list" class="bench-list"></ul>
+      </section>
+      <section class="panel">
+        <h2>Scorecard</h2>
+        <pre id="scorecard-view" class="message">Select a run to view scorecard.</pre>
+      </section>
+      <section class="panel">
+        <h2>Report</h2>
+        <pre id="report-view" class="message">Select a run to view report.</pre>
+      </section>
+    </div>
   </main>
   <script src="bench.js"></script>
 </body>

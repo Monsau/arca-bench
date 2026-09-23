@@ -1,7 +1,12 @@
 (async function () {
-  // Portal-aware API base: /m/<key>/api/v1 when mounted under the Suite portal.
+  // Portal-aware API base. Priority: the composed document (portal
+  // /module/<key> page) injects window.__ARCA_MODULE_BASE__; standalone
+  // dev behind the Suite proxy uses the /m/<module-key>/ location prefix.
+  // The browser never carries a token — the portal attaches the SSO Bearer
+  // server-side on every proxied call.
+  const _injected = window.__ARCA_MODULE_BASE__;
   const _pm = window.location.pathname.match(/^\/m\/([^/]+)\//);
-  const API = _pm ? `/m/${_pm[1]}/api/v1` : '/api/v1';
+  const API = (_injected || (_pm ? '/m/' + _pm[1] + '/' : '/')) + 'api/v1';
 
   async function getJSON(path) {
     const r = await fetch(path);
