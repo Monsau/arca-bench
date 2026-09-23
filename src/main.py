@@ -3,12 +3,14 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 
 from .api import graphql, mcp, rest
 from .config import settings
 from .core.events.bench_events import KafkaDomainEventPublisher
+from .core.security.jwt import get_current_user
 from .core.services.bench_service import BenchService
 from .infra import otel
 from .infra.kafka import KafkaConsumer, KafkaProducer, build_asset_published_handler
@@ -51,13 +53,53 @@ async def lifespan(app: FastAPI):
     await consumer.stop()
 
 
-app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
+def _docs_metadata_guard(request: Request) -> None:
+    """Zero Trust gate for the API metadata endpoints (/docs, /redoc,
+    /openapi.json).
+
+    Dev/standalone keeps them open (module dev-gate convention); every other
+    environment requires a valid Keycloak JWT through the existing JWKS/RS256
+    stack (ADR-009). The endpoints are re-served below with this guard — they
+    are protected, not hidden. Health endpoints stay open for k8s probes.
+    """
+    if settings.environment == "dev":
+        return
+    get_current_user(request)
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 otel.instrument(app)
 
 app.include_router(rest.router)
 app.include_router(mcp.router)
 app.include_router(graphql.graphql_router, prefix="/graphql")
 app.mount("/ui", StaticFiles(directory="src/ui", html=True), name="ui")
+
+
+@app.get("/openapi.json", include_in_schema=False)
+async def openapi_json(_: None = Depends(_docs_metadata_guard)):
+    return app.openapi()
+
+
+@app.get("/docs", include_in_schema=False)
+async def swagger_ui(_: None = Depends(_docs_metadata_guard)):
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json", title=f"{settings.app_name} - Swagger UI"
+    )
+
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_ui(_: None = Depends(_docs_metadata_guard)):
+    return get_redoc_html(
+        openapi_url="/openapi.json", title=f"{settings.app_name} - ReDoc"
+    )
 
 
 @app.get("/healthz")
